@@ -158,6 +158,17 @@
 
                 </div>
 
+                <div class="mt-8 text-center">
+
+                    <button
+                        id="sendProposalBtn"
+                        disabled
+                        class="opacity-50 cursor-not-allowed bg-pink-500 text-white px-8 py-4 rounded-full text-xl shadow-lg transition-all">
+                        Invia proposta 💌
+                    </button>
+
+                </div>
+
             </div>
 
         </section>
@@ -224,6 +235,8 @@ const appData = {
     food: ''
 };
 
+let selectedFood = null;
+
 /* ======================================================
    OPZIONI CUCINA
 ====================================================== */
@@ -253,7 +266,9 @@ foodOptions.forEach(item => {
         <div class="text-lg font-medium">${item.label}</div>
     `;
 
-    btn.addEventListener('click', () => chooseFood(item.label));
+    btn.dataset.food = item.label;
+
+    btn.addEventListener('click', () => selectFood(item.label, btn));
 
     foodGrid.appendChild(btn);
 });
@@ -348,20 +363,57 @@ document
    STEP 3
 ====================================================== */
 
-async function chooseFood(food) {
+function selectFood(food, clickedButton) {
 
-    appData.food = food;
+    selectedFood = food;
 
-    document.getElementById('summaryDate').textContent =
-        formatDate(appData.dateTime);
+    document.querySelectorAll('.food-card')
+        .forEach(card => {
 
-    document.getElementById('summaryFood').textContent =
-        food;
+            card.classList.remove(
+                'ring-4',
+                'ring-pink-500',
+                'scale-105'
+            );
+        });
 
-    showStep('step4');
+    clickedButton.classList.add(
+        'ring-4',
+        'ring-pink-500',
+        'scale-105'
+    );
 
-    sendTelegramNotification();
+    const sendBtn =
+        document.getElementById('sendProposalBtn');
+
+    sendBtn.disabled = false;
+
+    sendBtn.classList.remove(
+        'opacity-50',
+        'cursor-not-allowed'
+    );
 }
+
+document
+    .getElementById('sendProposalBtn')
+    .addEventListener('click', async () => {
+
+        if (!selectedFood) {
+            return;
+        }
+
+        appData.food = selectedFood;
+
+        document.getElementById('summaryDate').textContent =
+            formatDate(appData.dateTime);
+
+        document.getElementById('summaryFood').textContent =
+            selectedFood;
+
+        showStep('step4');
+
+        await sendTelegramNotification();
+    });
 
 /* ======================================================
    TELEGRAM
